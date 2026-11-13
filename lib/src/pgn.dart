@@ -78,14 +78,14 @@ class PgnGame<T extends PgnNodeData> {
 
   /// Create default headers of a PGN.
   static PgnHeaders defaultHeaders() => {
-    'Event': '?',
-    'Site': '?',
-    'Date': '????.??.??',
-    'Round': '?',
-    'White': '?',
-    'Black': '?',
-    'Result': '*',
-  };
+        'Event': '?',
+        'Site': '?',
+        'Date': '????.??.??',
+        'Round': '?',
+        'White': '?',
+        'Black': '?',
+        'Result': '*',
+      };
 
   /// Create empty headers of a PGN.
   static PgnHeaders emptyHeaders() => <String, String>{};
@@ -104,7 +104,8 @@ class PgnGame<T extends PgnNodeData> {
     final List<PgnGame<PgnNodeData>> games = [];
     _PgnParser((PgnGame<PgnNodeData> game) {
       games.add(game);
-    }, initHeaders).parse(pgn);
+    }, initHeaders)
+        .parse(pgn);
 
     if (games.isEmpty) {
       return PgnGame(headers: initHeaders(), moves: PgnNode(), comments: const []);
@@ -131,7 +132,8 @@ class PgnGame<T extends PgnNodeData> {
       final List<PgnGame<PgnNodeData>> parsedGames = [];
       _PgnParser((PgnGame<PgnNodeData> game) {
         parsedGames.add(game);
-      }, initHeaders).parse(pgnGame);
+      }, initHeaders)
+          .parse(pgnGame);
       if (parsedGames.isNotEmpty) {
         games.add(parsedGames[0]);
       }
@@ -563,63 +565,59 @@ class PgnComment {
     final List<PgnCommentShape> shapes = [];
     PgnEvaluation? eval;
     final List<String> commands = [];
-    var text = comment
-        .replaceAllMapped(
-          RegExp(r'\s?\[%(emt|clk)\s(\d{1,5}):(\d{1,2}):(\d{1,2}(?:\.\d{0,3})?)\]\s?'),
-          (match) {
-            final annotation = match.group(1);
-            final hours = match.group(2);
-            final minutes = match.group(3);
-            final seconds = match.group(4);
-            final secondsValue = double.parse(seconds!);
-            final duration = Duration(
-              hours: int.parse(hours!),
-              minutes: int.parse(minutes!),
-              seconds: secondsValue.truncate(),
-              milliseconds: ((secondsValue - secondsValue.truncate()) * 1000).round(),
-            );
-            if (annotation == 'emt') {
-              emt = duration;
-            } else if (annotation == 'clk') {
-              clock = duration;
-            }
-            return '  ';
-          },
-        )
-        .replaceAllMapped(
-          RegExp(
-            r'\s?\[%(?:csl|cal)\s([RGYB][a-h][1-8](?:[a-h][1-8])?(?:,[RGYB][a-h][1-8](?:[a-h][1-8])?)*)\]\s?',
-          ),
-          (match) {
-            final arrows = match.group(1);
-            if (arrows != null) {
-              for (final arrow in arrows.split(',')) {
-                final shape = PgnCommentShape.fromPgn(arrow);
-                if (shape != null) shapes.add(shape);
-              }
-            }
-            return '  ';
-          },
-        )
-        .replaceAllMapped(
-          RegExp(
-            r'\s?\[%eval\s(?:#([+-]?\d{1,5})|([+-]?(?:\d{1,5}|\d{0,5}\.\d{1,2})))(?:,(\d{1,5}))?\]\s?',
-          ),
-          (match) {
-            final mate = match.group(1);
-            final pawns = match.group(2);
-            final d = match.group(3);
-            final depth = d != null ? int.parse(d) : null;
-            eval =
-                mate != null
-                    ? PgnEvaluation.mate(mate: int.parse(mate), depth: depth)
-                    : PgnEvaluation.pawns(
-                      pawns: pawns != null ? double.parse(pawns) : null,
-                      depth: depth,
-                    );
-            return '  ';
-          },
+    var text = comment.replaceAllMapped(
+      RegExp(r'\s?\[%(emt|clk)\s(\d{1,5}):(\d{1,2}):(\d{1,2}(?:\.\d{0,3})?)\]\s?'),
+      (match) {
+        final annotation = match.group(1);
+        final hours = match.group(2);
+        final minutes = match.group(3);
+        final seconds = match.group(4);
+        final secondsValue = double.parse(seconds!);
+        final duration = Duration(
+          hours: int.parse(hours!),
+          minutes: int.parse(minutes!),
+          seconds: secondsValue.truncate(),
+          milliseconds: ((secondsValue - secondsValue.truncate()) * 1000).round(),
         );
+        if (annotation == 'emt') {
+          emt = duration;
+        } else if (annotation == 'clk') {
+          clock = duration;
+        }
+        return '  ';
+      },
+    ).replaceAllMapped(
+      RegExp(
+        r'\s?\[%(?:csl|cal)\s([RGYB][a-h][1-8](?:[a-h][1-8])?(?:,[RGYB][a-h][1-8](?:[a-h][1-8])?)*)\]\s?',
+      ),
+      (match) {
+        final arrows = match.group(1);
+        if (arrows != null) {
+          for (final arrow in arrows.split(',')) {
+            final shape = PgnCommentShape.fromPgn(arrow);
+            if (shape != null) shapes.add(shape);
+          }
+        }
+        return '  ';
+      },
+    ).replaceAllMapped(
+      RegExp(
+        r'\s?\[%eval\s(?:#([+-]?\d{1,5})|([+-]?(?:\d{1,5}|\d{0,5}\.\d{1,2})))(?:,(\d{1,5}))?\]\s?',
+      ),
+      (match) {
+        final mate = match.group(1);
+        final pawns = match.group(2);
+        final d = match.group(3);
+        final depth = d != null ? int.parse(d) : null;
+        eval = mate != null
+            ? PgnEvaluation.mate(mate: int.parse(mate), depth: depth)
+            : PgnEvaluation.pawns(
+                pawns: pawns != null ? double.parse(pawns) : null,
+                depth: depth,
+              );
+        return '  ';
+      },
+    );
     // Removing a command can reveal another one it was nested in, so loop until none is left,
     // which keeps [makeComment] and [PgnComment.fromPgn] a round trip.
     final command = RegExp(r'\s?(\[%[^\[\]]+\])\s?');
@@ -646,9 +644,8 @@ class PgnComment {
     final List<String> builder = [];
     if (text != null) builder.add(text!);
     builder.addAll(commands);
-    final circles = shapes
-        .where((shape) => shape.to == shape.from)
-        .map((shape) => shape.toString());
+    final circles =
+        shapes.where((shape) => shape.to == shape.from).map((shape) => shape.toString());
     if (circles.isNotEmpty) builder.add('[%csl ${circles.join(",")}]');
     final arrows = shapes.where((shape) => shape.to != shape.from).map((shape) => shape.toString());
     if (arrows.isNotEmpty) builder.add('[%cal ${arrows.join(",")}]');
@@ -838,9 +835,8 @@ class _PgnParser {
               moreHeaders = false;
               line = line.replaceFirstMapped(headerReg, (match) {
                 if (match[1] != null && match[2] != null) {
-                  _gameHeaders[match[1]!] = match[2]!
-                      .replaceAll('\\"', '"')
-                      .replaceAll('\\\\', '\\');
+                  _gameHeaders[match[1]!] =
+                      match[2]!.replaceAll('\\"', '"').replaceAll('\\\\', '\\');
                   moreHeaders = true;
                   freshLine = false;
                 }

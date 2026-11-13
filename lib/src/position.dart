@@ -207,8 +207,7 @@ abstract class Position {
           board.bySide(side.opposite).diff(board.kings).diff(board.queens).isEmpty;
     }
     if (board.bySide(side).isIntersected(board.bishops)) {
-      final sameColor =
-          !board.bishops.isIntersected(SquareSet.darkSquares) ||
+      final sameColor = !board.bishops.isIntersected(SquareSet.darkSquares) ||
           !board.bishops.isIntersected(SquareSet.lightSquares);
       return sameColor && board.pawns.isEmpty && board.knights.isEmpty;
     }
@@ -539,18 +538,15 @@ abstract class Position {
     // The separator must agree with the position
     // (castling written as king-to-rook is not a capture).
     final isCastling = movingRole == Role.king && board.bySide(turn).has(to);
-    final isCapture = board.bySide(turn.opposite).has(to) ||
-        (movingRole == Role.pawn && to == epSquare);
+    final isCapture =
+        board.bySide(turn.opposite).has(to) || (movingRole == Role.pawn && to == epSquare);
     if (!isCastling && (match.group(3) == 'x') != isCapture) return null;
 
     // Promotion is mandatory for a pawn reaching the last rank.
     final promotionChar = match.group(5);
-    final promotion =
-        promotionChar == null ? null : Role.fromChar(promotionChar);
+    final promotion = promotionChar == null ? null : Role.fromChar(promotionChar);
     if (promotionChar != null && promotion == null) return null;
-    if (movingRole == Role.pawn &&
-        SquareSet.backranks.has(to) &&
-        promotion == null) {
+    if (movingRole == Role.pawn && SquareSet.backranks.has(to) && promotion == null) {
       return null;
     }
 
@@ -615,13 +611,10 @@ abstract class Position {
           newBoard = newBoard.setPieceAt(to, newPiece);
         }
 
-        final capturedPiece =
-            castlingSide == null
-                ? (board.pieceAt(to) ??
-                    (to == epSquare && epCaptureTarget != null
-                        ? board.pieceAt(epCaptureTarget)
-                        : null))
-                : null;
+        final capturedPiece = castlingSide == null
+            ? (board.pieceAt(to) ??
+                (to == epSquare && epCaptureTarget != null ? board.pieceAt(epCaptureTarget) : null))
+            : null;
 
         final isCapture = capturedPiece != null;
 
@@ -632,13 +625,12 @@ abstract class Position {
         return copyWith(
           halfmoves: isCapture || piece.role == Role.pawn ? 0 : halfmoves + 1,
           fullmoves: turn == Side.black ? fullmoves + 1 : fullmoves,
-          pockets:
-              capturedPiece != null
-                  ? pockets?.increment(
-                    capturedPiece.color.opposite,
-                    capturedPiece.promoted ? Role.pawn : capturedPiece.role,
-                  )
-                  : pockets,
+          pockets: capturedPiece != null
+              ? pockets?.increment(
+                  capturedPiece.color.opposite,
+                  capturedPiece.promoted ? Role.pawn : capturedPiece.role,
+                )
+              : pockets,
           board: newBoard,
           turn: turn.opposite,
           castles: newCastles,
@@ -660,10 +652,9 @@ abstract class Position {
   (Position, String) makeSanUnchecked(Move move) {
     final san = _makeSanWithoutSuffix(move);
     final newPos = playUnchecked(move);
-    final suffixed =
-        newPos.outcome?.winner != null
-            ? '$san#'
-            : newPos.isCheck
+    final suffixed = newPos.outcome?.winner != null
+        ? '$san#'
+        : newPos.isCheck
             ? '$san+'
             : san;
     return (newPos, suffixed);
@@ -996,10 +987,8 @@ abstract class Position {
     final king = board.kingOf(turn);
     if (king == null) return true;
     final captured = Square(epSquare! + (turn == Side.white ? -8 : 8));
-    final occupied = board.occupied
-        .toggleSquare(pawn)
-        .toggleSquare(epSquare!)
-        .toggleSquare(captured);
+    final occupied =
+        board.occupied.toggleSquare(pawn).toggleSquare(epSquare!).toggleSquare(captured);
     return !board.attacksTo(king, turn.opposite, occupied: occupied).isIntersected(occupied);
   }
 
@@ -1568,12 +1557,12 @@ abstract class Crazyhouse extends Position {
   @override
   SquareSet get legalDrops {
     final mask = board.occupied.complement().intersect(
-      pockets != null && pockets!.hasQuality(turn)
-          ? SquareSet.full
-          : pockets != null && pockets!.hasPawn(turn)
-          ? SquareSet.backranks.complement()
-          : SquareSet.empty,
-    );
+          pockets != null && pockets!.hasQuality(turn)
+              ? SquareSet.full
+              : pockets != null && pockets!.hasPawn(turn)
+                  ? SquareSet.backranks.complement()
+                  : SquareSet.empty,
+        );
 
     final ctx = _makeContext();
     if (ctx.king != null && ctx.checkers.isNotEmpty) {
@@ -1769,10 +1758,9 @@ abstract class ThreeCheck extends Position {
     if (newPos.isCheck) {
       final (whiteChecks, blackChecks) = remainingChecks;
       return newPos.copyWith(
-        remainingChecks:
-            turn == Side.white
-                ? (math.max(whiteChecks - 1, 0), blackChecks)
-                : (whiteChecks, math.max(blackChecks - 1, 0)),
+        remainingChecks: turn == Side.white
+            ? (math.max(whiteChecks - 1, 0), blackChecks)
+            : (whiteChecks, math.max(blackChecks - 1, 0)),
       );
     } else {
       return newPos;
@@ -1858,11 +1846,11 @@ abstract class RacingKings extends Position {
 
   @override
   SquareSet _legalMovesOf(Square square, {_Context? context}) => SquareSet.fromSquares(
-    super
-        ._legalMovesOf(square, context: context)
-        .squares
-        .where((to) => !playUnchecked(NormalMove(from: square, to: to)).isCheck),
-  );
+        super
+            ._legalMovesOf(square, context: context)
+            .squares
+            .where((to) => !playUnchecked(NormalMove(from: square, to: to)).isCheck),
+      );
 
   @override
   bool isLegal(Move move) => !playUnchecked(move).isCheck && super.isLegal(move);
@@ -1980,11 +1968,10 @@ abstract class Horde extends Position {
   }
 
   /// get the number of light or dark square bishops of the [side]
-  int _numBishops(Side side, SquareColor sqColor) =>
-      board
-          .piecesOf(side, Role.bishop)
-          .intersect(sqColor == SquareColor.light ? SquareSet.lightSquares : SquareSet.darkSquares)
-          .size;
+  int _numBishops(Side side, SquareColor sqColor) => board
+      .piecesOf(side, Role.bishop)
+      .intersect(sqColor == SquareColor.light ? SquareSet.lightSquares : SquareSet.darkSquares)
+      .size;
 
   /// Number of light or dark square bishops of the horde (white)
   int _hordeBishops(SquareColor color) => _numBishops(Side.white, color);
@@ -2008,8 +1995,7 @@ abstract class Horde extends Position {
     }
 
     // now side represents horde (white) and side.opposite is pieces (black)
-    final hordeNum =
-        board.piecesOf(side, Role.pawn).size +
+    final hordeNum = board.piecesOf(side, Role.pawn).size +
         board.piecesOf(side, Role.rook).size +
         board.piecesOf(side, Role.queen).size +
         board.piecesOf(side, Role.knight).size +
